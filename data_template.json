@@ -1,0 +1,15 @@
+{
+  "title" : "Complete Blood Count - 01/29/2014 @08:46:00",
+  "description" : "A radar graph of blood panel data.",
+  "id" : "bloodgraph",
+
+  "labels" : ["WBC", "RBC", "HEM", "HTC", "PLT", "RAN"],
+  "units" : ["White Blood Cells (x10\\s\\3ul)", "Red Blood Cells (x10\\s\\6ul)", "Hemoglobin (g/dL)", "Hematocrit (%)", "Platelets (x10\\s\\3ul)"],
+  "data" : [5.5, 4.78, 13.2, 40.5, 1.71],
+  "databounds" : [13, 8, 24, 100, 6],
+
+  "width" : 300,
+  "margin" : 50,
+  "drawLabels" : true,
+  "drawAxes" : true
+}

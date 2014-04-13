@@ -1,0 +1,20 @@
+svg {
+
+}
+
+svg .axis {
+  stroke : #bdc3c7;
+}
+
+svg .label {
+  fill : #bdc3c7;
+}
+
+svg .graph {
+  fill : #c0392b;
+  fill-opacity : 0.6;
+}
+
+svg .datapoint {
+
+}
