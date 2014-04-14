@@ -3,13 +3,14 @@
   "description" : "A radar graph of blood panel data.",
   "id" : "bloodgraph",
 
-  "labels" : ["WBC", "RBC", "HEM", "HTC", "PLT", "RAN"],
+  "labels" : ["WBC", "RBC", "HEM", "HTC", "PLT"],
   "units" : ["White Blood Cells (x10\\s\\3ul)", "Red Blood Cells (x10\\s\\6ul)", "Hemoglobin (g/dL)", "Hematocrit (%)", "Platelets (x10\\s\\3ul)"],
-  "data" : [5.5, 4.78, 13.2, 40.5, 1.71],
-  "databounds" : [13, 8, 24, 100, 6],
+  "data" : [5.5, 4.78, 13.2, 40.5, 171],
+  "databounds" : [11, 6, 18, 52, 400],
 
   "width" : 300,
   "margin" : 50,
   "drawLabels" : true,
-  "drawAxes" : true
+  "drawAxes" : true,
+  "selectable" : true
 }

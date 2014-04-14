@@ -4,10 +4,12 @@ svg {
 
 svg .axis {
   stroke : #bdc3c7;
+  fill : none;
 }
 
 svg .label {
-  fill : #bdc3c7;
+  fill : #7f8c8d;
+  font-family: sans-serif;
 }
 
 svg .graph {
@@ -16,5 +18,17 @@ svg .graph {
 }
 
 svg .datapoint {
+  fill-opacity : 0;
+  stroke-width : 2;
+  stroke-opacity : 0;
+  stroke : #ccc;
+}
 
+svg .datapoint.hover {
+  stroke-opacity : 1;
+}
+
+svg .datapoint.selected {
+  stroke-opacity : 1;
+  stroke : #2c3e50;
 }

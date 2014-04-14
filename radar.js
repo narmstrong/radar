@@ -9,7 +9,6 @@ d3.radar = function(file, elem) {
 
   // Load graph data from the file provided and draw in callback
   d3.json(file, function(data) {
-    console.log(data);
     json = data;
     drawGraph();
   });
@@ -26,7 +25,7 @@ d3.radar = function(file, elem) {
     for(var i = 0; i < json.data.length; i++) {
       var scale = d3.scale.linear()
           .domain([0, json.databounds[i]])
-          .range([0, radius - json.margin]);
+          .range([0, radius]);
       scales.push(scale);
     }
 
@@ -52,6 +51,14 @@ d3.radar = function(file, elem) {
               "class" : "axis"
             });
       }
+      svg.append("circle")
+          .attr({
+            "cx" : center,
+            "cy" : center,
+            "r" : radius/2,
+            "class" : "axis",
+            "stroke-dasharray" : "3, 3"
+          });
     }
 
     if(json.drawLabels) {
@@ -85,6 +92,52 @@ d3.radar = function(file, elem) {
           "d" : pathFunction(pathData) + "Z",
           "class" : "graph"
         });
+
+    svg.selectAll(".datapoint")
+        .data(json.data)
+      .enter()
+        .append("circle")
+        .attr({
+          "cx" : function(d, i){ return center + scales[i](json.data[i]) * Math.cos(radians * i); },
+          "cy" : function(d, i){ return center + scales[i](json.data[i]) * Math.sin(radians * i); },
+          "r" : 5,
+          "class" : "datapoint"
+        })
+
+    if(json.selectable) {
+      svg.selectAll(".datapoint").on("mouseover", function(){
+          var hovered = d3.select(this);
+          d3.selectAll(".datapoint")
+              .each(function(){
+                var crnt = d3.select(this);
+                if(crnt.datum() === hovered.datum() && !crnt.classed("datapoint selected"))
+                  crnt.attr("class", "datapoint hover");
+                else if(!crnt.classed("datapoint selected"))
+                  crnt.attr("class", "datapoint");
+              })
+        })
+        .on("mouseout", function(){
+          d3.selectAll(".datapoint")
+              .each(function(){
+                if(!d3.select(this).classed("datapoint selected"))
+                  d3.select(this).attr("class", "datapoint");
+              })
+        })
+        .on("click", function(){
+          var selected = d3.select(this);
+          d3.selectAll(".datapoint")
+              .each(function(){
+                var crnt = d3.select(this);
+                if(crnt.datum() === selected.datum())
+                  crnt.attr("class", "datapoint selected");
+                else
+                  crnt.attr("class", "datapoint");
+              });
+        });
+      }
+
+
+
   };
 
 };
