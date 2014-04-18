@@ -24,7 +24,7 @@ svg .graph {
 }
 
 svg .datapoint {
-  fill-opacity : 0.15;
+  fill-opacity : 0.25;
   stroke-width : 2;
   stroke-opacity : 0;
   stroke : #7f8c8d;

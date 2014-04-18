@@ -102,13 +102,14 @@
       if(drawPoints) {
         g.each(function(d, i) {
 
-          var point = d3.select(this).append("circle")
+          var point = svg.append("circle")
             .attr({
               "cx" : d.coordinates[0],
               "cy" : d.coordinates[1],
               "r" : radius / 20,
               "class" : "datapoint"
-            });
+            })
+            .datum(d);
 
           if(selectable) {
 
