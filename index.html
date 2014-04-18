@@ -3,12 +3,52 @@
 
 <head>
   <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="radar.css">
   <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
   <script type="text/javascript" src="radar.js"></script>
-  <link rel="stylesheet" type="text/css" href="css_template.css">
 </head>
 
 <body>
+
   <div id="chart"></div>
-  <script type="text/javascript">d3.radar("data_template.json", "#chart");</script>
+
+  <script>
+
+    d3.json("rcp.json", function(error, parameters) {
+
+      d3.json("rcd.json", function(error, data) {
+
+        var chart = d3.radar()
+          .width(parameters.width)
+          .height(parameters.height)
+          .center([parameters.width / 2, parameters.height /2])
+          .radius(d3.max([parameters.width, parameters.height]) / 2 - parameters.margin.right)
+          .radians(data.length)
+          .labelOffset(parameters.margin.right / 2)
+          .drawAxes(true)
+          .drawLabels(true)
+          .drawQuadrants(true)
+          .drawPoints(true)
+          .selectable(true);
+
+
+
+        d3.select("#chart")
+          .append("svg")
+            .attr({
+              "class" : "radar",
+              "width" : chart.width(),
+              "height" : chart.height()
+            })
+          .selectAll("g")
+            .data(data)
+          .enter().append("g")
+            .call(chart);
+
+      });
+
+    });
+
+  </script>
+
 </body>

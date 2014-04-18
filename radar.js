@@ -1,143 +1,274 @@
-// === radar.js ===
+// radar.js
+// A simple utility for drawing static radar charts using D3.
+//
 // Author: Nick Armstrong
-// Version: 0.1
+// Last Update: 04.17.2014
+// Version: 0.2
+//
+// Many thanks to Stephen Few, Clint Ivy, Jamie Love, and Jason Davies
+// for their work on bullets.js, which heavily influenced the design
+// of this script.
+// A copy of bullets.js can be found here: http://bl.ocks.org/mbostock/4061961
 
-d3.radar = function(file, elem) {
+(function() {
 
-  var selection = d3.select(elem),
-      json;
-
-  // Load graph data from the file provided and draw in callback
-  d3.json(file, function(data) {
-    json = data;
-    drawGraph();
-  });
-
-  var drawGraph = function() {
-
-    var scales = [],
-        radius = json.width/2 - json.margin,
-        radians = 2 * Math.PI / json.data.length,
-        center = json.width/2,
-        pathData = [];
-
-    // Generate scales for each datapoint provided relative to their max
-    for(var i = 0; i < json.data.length; i++) {
-      var scale = d3.scale.linear()
-          .domain([0, json.databounds[i]])
-          .range([0, radius]);
-      scales.push(scale);
-    }
-
-    var svg = selection.append("svg:svg")
-        .attr({
-          "width" : json.width,
-          "height" : json.height,
-          "id" : json.id
-        });
-    svg.append("title")
-        .text(json.title);
-    svg.append("desc")
-        .text(json.description);
-
-    if(json.drawAxes) {
-      for(var i = 0; i < json.data.length; i++) {
-        svg.append("line")
-            .attr({
-              "x1" : center,
-              "y1" : center,
-              "x2" : center + radius * Math.cos(radians * i),
-              "y2" : center + radius * Math.sin(radians * i),
-              "class" : "axis"
-            });
-      }
-      svg.append("circle")
-          .attr({
-            "cx" : center,
-            "cy" : center,
-            "r" : radius/2,
-            "class" : "axis",
-            "stroke-dasharray" : "3, 3"
-          });
-    }
-
-    if(json.drawLabels) {
-      for(var i = 0; i < json.data.length; i++) {
-        svg.append("text")
-            .attr({
-              "text-anchor" : "middle",
-              "x" : center + (radius + json.margin/2) * Math.cos(radians * i),
-              "y" : center + (radius + json.margin/2) * Math.sin(radians * i),
-              "dy" : "0.5ex",
-              "class" : "label"
-            })
-            .text(json.labels[i]);
-      }
-    }
-
-    for(var i = 0; i < json.data.length; i++) {
-      var point = new Object();
-      point.x = center + scales[i](json.data[i]) * Math.cos(radians * i);
-      point.y = center + scales[i](json.data[i]) * Math.sin(radians * i);
-      pathData.push(point);
-    }
+  d3.radar = function() {
+    var
+      // SVG sizing data
+      width = 300,
+      height = 300,
+      center = [150, 150],
+      // Calculation data
+      radius = 120,
+      radians,
+      labelOffset = 15;
+      pathdata = [],
+      // Formatting data
+      drawAxes = true,
+      drawLabels = true,
+      drawQuadrants = true,
+      drawPoints = true,
+      selectable = true;
 
     var pathFunction = d3.svg.line()
-        .x(function(d){ return d.x; })
-        .y(function(d){ return d.y; })
-        .interpolate("linear");
+      .x(function(d){ return d.x; })
+      .y(function(d){ return d.y; })
+      .interpolate("linear");
 
-    svg.append("path")
-        .attr({
-          "d" : pathFunction(pathData) + "Z",
-          "class" : "graph"
-        });
+    function chart(g) {
+      g.each(function(d, i) {
 
-    svg.selectAll(".datapoint")
-        .data(json.data)
-      .enter()
-        .append("circle")
-        .attr({
-          "cx" : function(d, i){ return center + scales[i](json.data[i]) * Math.cos(radians * i); },
-          "cy" : function(d, i){ return center + scales[i](json.data[i]) * Math.sin(radians * i); },
-          "r" : 5,
-          "class" : "datapoint"
-        })
+        // Generate scale for drawing axis and datapoint - bind to element.
+        var scale = d3.scale.linear()
+          .domain([lowerRange(d), upperRange(d)])
+          .range([0, radius]);
+        d.scale = scale;
 
-    if(json.selectable) {
-      svg.selectAll(".datapoint").on("mouseover", function(){
-          var hovered = d3.select(this);
-          d3.selectAll(".datapoint")
-              .each(function(){
-                var crnt = d3.select(this);
-                if(crnt.datum() === hovered.datum() && !crnt.classed("datapoint selected"))
-                  crnt.attr("class", "datapoint hover");
-                else if(!crnt.classed("datapoint selected"))
-                  crnt.attr("class", "datapoint");
-              })
-        })
-        .on("mouseout", function(){
-          d3.selectAll(".datapoint")
-              .each(function(){
-                if(!d3.select(this).classed("datapoint selected"))
-                  d3.select(this).attr("class", "datapoint");
-              })
-        })
-        .on("click", function(){
-          var selected = d3.select(this);
-          d3.selectAll(".datapoint")
-              .each(function(){
-                var crnt = d3.select(this);
-                if(crnt.datum() === selected.datum())
-                  crnt.attr("class", "datapoint selected");
-                else
-                  crnt.attr("class", "datapoint");
-              });
-        });
+        // Draw axis for current element
+        if(drawAxes) {
+          var axis = axisCoords(d, i);
+          d3.select(this).append("line")
+            .attr({
+              "x1" : axis[0],
+              "y1" : axis[1],
+              "x2" : axis[2],
+              "y2" : axis[3],
+              "class" : "axis"
+            });
+        }
+
+        // Draw label for current element
+        if(drawLabels) {
+          var label = labelVals(d, i);
+          d3.select(this).append("text")
+            .attr({
+              "dy" : "0.5ex",
+              "class" : "label",
+              "text-anchor" : "middle",
+              "x" : label[0],
+              "y" : label[1]
+            })
+            .text(label[2]);
+        }
+
+        // Add datapoints to pathdata - bind to element
+        var coordinates = pointCoords(d, i);
+        pathdata.push({"x" : coordinates[0], "y" : coordinates[1]});
+        d.coordinates = coordinates;
+
+      });
+
+      var svg = d3.select(g[0].parentNode)
+
+      if(drawQuadrants) {
+        var quadrants = [1/4, 2/4, 3/4, 1];
+        svg.selectAll(".quadrant")
+            .data(quadrants)
+          .enter().append("circle")
+            .attr({
+              "class" : "quadrant",
+              "cx" : center[0],
+              "cy" : center[1],
+              "r" : function(d){ return d * radius; },
+            });
       }
 
+      svg.append("path")
+          .attr({
+            "d" : pathFunction(pathdata) + "Z",
+            "class" : "graph"
+          });
+
+      if(drawPoints) {
+        g.each(function(d, i) {
+
+          var point = d3.select(this).append("circle")
+            .attr({
+              "cx" : d.coordinates[0],
+              "cy" : d.coordinates[1],
+              "r" : radius / 20,
+              "class" : "datapoint"
+            });
+
+          if(selectable) {
+
+            point.on("mouseover", function(){
+                var hovered = point;
+                d3.selectAll(".datapoint")
+                    .each(function(){
+                      var crnt = d3.select(this);
+                      if(crnt.datum() === hovered.datum() && !crnt.classed("datapoint selected"))
+                        crnt.attr("class", "datapoint hover");
+                      else if(!crnt.classed("datapoint selected"))
+                        crnt.attr("class", "datapoint");
+                    })
+              })
+              .on("mouseout", function(){
+                d3.selectAll(".datapoint")
+                    .each(function(){
+                      if(!d3.select(this).classed("datapoint selected"))
+                        d3.select(this).attr("class", "datapoint");
+                    })
+              })
+              .on("click", function(){
+                var selected = d3.select(this);
+                d3.selectAll(".datapoint")
+                    .each(function(){
+                      var crnt = d3.select(this);
+                      if(crnt.datum() === selected.datum())
+                        crnt.attr("class", "datapoint selected");
+                      else
+                        crnt.attr("class", "datapoint");
+                    });
+              });
+
+          }
+
+        });
+      }
+    }
 
 
+    /*
+    *  Setters/getters for chart() -- return chart object to allow chaining.
+    */
+
+    chart.width = function(args) {
+      // if no args provided return the value of width
+      if(!arguments.length)
+        return width;
+      // if args are provided set a value for width
+      width = args;
+      // return radar object to allow method chaining
+      return chart;
+    };
+
+    chart.height = function(args) {
+      if(!arguments.length)
+        return height;
+      height = args;
+      return chart;
+    };
+
+    chart.center = function(args) {
+      if(!arguments.length)
+        return center;
+      center = args;
+      return chart;
+    };
+
+    chart.radius = function(args) {
+      if(!arguments.length)
+        return radius;
+      radius = args;
+      return chart;
+    };
+
+    chart.radians = function(args) {
+      if(!arguments.length)
+        return radians;
+      radians = (Math.PI * 2) / args;
+      return chart;
+    };
+
+    chart.labelOffset = function(args) {
+      if(!arguments.length)
+        return labelOffset;
+      labelOffset = args;
+      return chart;
+    };
+
+    chart.drawAxes = function(args) {
+      if(!arguments.length)
+        return drawAxes;
+      drawAxes = args;
+      return chart;
+    };
+
+    chart.drawLabels = function(args) {
+      if(!arguments.length)
+        return drawLabels;
+      drawLabels = args;
+      return chart;
+    };
+
+    chart.drawQuadrants = function(args) {
+      if(!arguments.length)
+        return drawQuadrants;
+      drawQuadrants = args;
+      return chart;
+    };
+
+    chart.drawPoints = function(args) {
+      if(!arguments.length)
+        return drawPoints;
+      drawPoints = args;
+      return chart;
+    };
+
+    chart.selectable = function(args) {
+      if(!arguments.length)
+        return selectable;
+      selectable = args;
+      return chart;
+    };
+
+
+    /*
+    *  Helper functions for chart generation
+    */
+
+    function lowerRange(d) {
+      return d.range[0];
+    }
+
+    function upperRange(d) {
+      return d.range[1];
+    }
+
+    function axisCoords(d, i) {
+      var coordinates = [center[0], center[1]];
+      coordinates.push(center[0] + radius * Math.cos(radians * i));
+      coordinates.push(center[1] + radius * Math.sin(radians * i));
+      return coordinates;
+    }
+
+    function labelVals(d, i) {
+      var vals = [];
+      vals.push(center[0] + (radius + labelOffset) * Math.cos(radians * i));
+      vals.push(center[1] + (radius + labelOffset) * Math.sin(radians * i));
+      vals.push(d.label);
+      return vals;
+    }
+
+    function pointCoords(d, i) {
+      var coordinates = [];
+      coordinates.push(center[0] + d.scale(d.value) * Math.cos(radians * i));
+      coordinates.push(center[1] + d.scale(d.value) * Math.sin(radians * i));
+      return coordinates;
+    }
+
+    return chart;
   };
 
-};
+})();

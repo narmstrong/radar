@@ -1,0 +1,7 @@
+[
+  {"label" : "WBC", "description" : "White Blood Cells", "units" : "(x10\\s\\3ul)", "value" : 5.5, "range" : [0, 11]},
+  {"label" : "RBC", "description" : "Red Blood Cells", "units" : "(x10\\s\\6ul)", "value" : 4.78, "range" : [0, 6]},
+  {"label" : "HEM", "description" : "Hemoglobin", "units" : "(g/dL)", "value" : 13.2, "range" : [0, 18]},
+  {"label" : "HTC", "description" : "Hematocrit", "units" : "(%)", "value" : 40.5, "range" : [0, 100]},
+  {"label" : "PLT", "description" : "Platelets", "units" : "(x10\\s\\3ul)", "value" : 171, "range" : [0, 400]}
+]

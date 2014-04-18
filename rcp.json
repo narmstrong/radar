@@ -1,0 +1,12 @@
+{
+  "title" : "Complete Blood Count - 01/29/2014 @08:46:00",
+  "description" : "A radar graph of blood panel data.",
+  "id" : "CBC_01292014",
+  "width" : 300,
+  "height" : 300,
+  "margin" : {"top" : 25, "right" : 50, "bottom" : 25, "left" : 50 },
+  "drawLabels" : true,
+  "drawAxes" : true,
+  "drawQuadrants" : true,
+  "drawDatapoints" : true
+}
